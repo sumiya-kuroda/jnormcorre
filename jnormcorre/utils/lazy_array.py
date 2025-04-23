@@ -100,7 +100,7 @@ class lazy_data_loader(ABC):
             )
 
         # Step 3: Now slice the data with frame_indexer (careful: if the ndims has shrunk, add a dim)
-        frames = self._compute_at_indices(frame_indexer)
+        frames, xy_translation = self._compute_at_indices(frame_indexer)
         if len(frames.shape) < len(self.shape):
             frames = np.expand_dims(frames, axis=0)
 
@@ -111,7 +111,7 @@ class lazy_data_loader(ABC):
             elif len(item) == 3:
                 frames = frames[:, item[1], item[2]]
 
-        return frames.squeeze()
+        return frames.squeeze(), xy_translation
 
     @abstractmethod
     def _compute_at_indices(self, indices: Union[list, int, slice]) -> np.ndarray:

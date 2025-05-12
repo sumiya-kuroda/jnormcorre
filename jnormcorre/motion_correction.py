@@ -177,11 +177,16 @@ class FrameCorrector:
 
         Returns:
             corrected_frames (np.array): Dimensions (T, d1, d2). The registered output from the input (frames)
-            xy_translation (np.array): Dimensions (T, num_patches, 2). XY translation. num_patches = 1 for rigid method.
+            xy_translation (np.array): Dimensions (T, num_tiles, 2). XY translation. num_tiles = 1 for rigid method.
         """
         output = np.zeros_like(frames)
         if pw_rigid:
-            xy_translation = np.zeros(((output.shape[0], self.strides[0]*self.strides[1], 2)))
+            sum_0 = output.shape[1] - self.strides[0] - self.overlaps[0]
+            sum_1 = output.shape[2] - self.strides[1] - self.overlaps[1]
+            comp_a = sum_0 // self.strides[0] + 1 + (sum_0 % self.strides[0] > 0)
+            comp_b = sum_1 // self.strides[1]  + 1 + (sum_1 % self.strides[1] > 0)
+            n_tiles = comp_a * comp_b
+            xy_translation = np.zeros(((output.shape[0], n_tiles, 2)))
         else:
             xy_translation = np.zeros(((output.shape[0], 2)))
         batches = list(range(0, output.shape[0], self.batching))
@@ -225,7 +230,7 @@ class FrameCorrector:
 
         Returns:
             corrected_frames (np.array): Dimensions (T, d1, d2). The registered output from the input (frames)
-            xy_translation (np.array): Dimensions (T, num_patches, 2). XY translation. num_patches = 1 for rigid method.
+            xy_translation (np.array): Dimensions (T, num_tiles, 2). XY translation. num_tiles = 1 for rigid method.
         """
         if not (target_frames.shape == reference_frames.shape):
             raise ValueError(
@@ -234,7 +239,12 @@ class FrameCorrector:
             )
         output = np.zeros_like(target_frames)
         if pw_rigid:
-            xy_translation = np.zeros(((output.shape[0], self.strides[0]*self.strides[1], 2)))
+            sum_0 = output.shape[1] - self.strides[0] - self.overlaps[0]
+            sum_1 = output.shape[2] - self.strides[1] - self.overlaps[1]
+            comp_a = sum_0 // self.strides[0] + 1 + (sum_0 % self.strides[0] > 0)
+            comp_b = sum_1 // self.strides[1]  + 1 + (sum_1 % self.strides[1] > 0)
+            n_tiles = comp_a * comp_b
+            xy_translation = np.zeros(((output.shape[0], n_tiles, 2)))
         else:
             xy_translation = np.zeros(((output.shape[0], 2)))
         batches = list(range(0, output.shape[0], self.batching))
